@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const swaggerUi = require('swagger-ui-express');
+
 
 const routes = require('./routes');
 const swaggerSpec = require('./config/swagger');
@@ -32,8 +32,37 @@ app.get('/', (req, res) => {
   });
 });
 
-// --- Swagger API docs (interactive testing UI) ---
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'EMS API Docs' }));
+// --- Swagger API docs 
+// Serve the raw OpenAPI spec as JSON
+app.get('/api-docs.json', (req, res) => {
+  res.json(swaggerSpec);
+});
+
+// Serve Swagger UI via CDN (avoids serving static assets ourselves,
+// which is unreliable on serverless platforms like Vercel)
+app.get('/api-docs', (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EMS API Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/api-docs.json',
+        dom_id: '#swagger-ui',
+      });
+    };
+  </script>
+</body>
+</html>
+  `);
+});
 
 // --- API routes ---
 app.use('/api/v1', routes);
