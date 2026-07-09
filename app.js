@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const swaggerUi = require('swagger-ui-express');
 
 const routes = require('./routes');
+const swaggerSpec = require('./config/swagger');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -25,9 +27,13 @@ app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Employee Management System API is running',
-    docs: '/api/v1/health',
+    healthCheck: '/api/v1/health',
+    docs: '/api-docs',
   });
 });
+
+// --- Swagger API docs (interactive testing UI) ---
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'EMS API Docs' }));
 
 // --- API routes ---
 app.use('/api/v1', routes);
