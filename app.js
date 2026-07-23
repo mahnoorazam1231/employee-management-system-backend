@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 
-
 const routes = require('./routes');
 const swaggerSpec = require('./config/swagger');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
@@ -12,7 +11,10 @@ const app = express();
 // --- Global middleware ---
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
+    origin:
+      !process.env.CORS_ORIGIN || process.env.CORS_ORIGIN === '*'
+        ? '*'
+        : process.env.CORS_ORIGIN.split(','),
   })
 );
 app.use(express.json({ limit: '10kb' }));
@@ -32,7 +34,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// --- Swagger API docs 
+// --- Swagger API docs
 // Serve the raw OpenAPI spec as JSON
 app.get('/api-docs.json', (req, res) => {
   res.json(swaggerSpec);
